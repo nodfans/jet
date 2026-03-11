@@ -1,0 +1,26 @@
+{
+  "name": "jet",
+  "image": "mcr.microsoft.com/devcontainers/rust:1-1-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/sshd:1": {}
+  },
+  "postCreateCommand": "cargo build --release -p jet-cli -p jet-server",
+  "forwardPorts": [
+    4220
+  ],
+  "portsAttributes": {
+    "4220": {
+      "label": "jet-server",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  }
+}

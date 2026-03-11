@@ -1,0 +1,17 @@
+[package]
+name = "jet-remote"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+tokio.workspace = true
+tonic.workspace = true
+tokio-stream.workspace = true
+toml.workspace = true
+jet-proto = { path = "../jet-proto" }
+jet-core = { path = "../jet-core" }
+
+[dev-dependencies]
+tempfile.workspace = true

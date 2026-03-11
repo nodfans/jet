@@ -1,0 +1,206 @@
+syntax = "proto3";
+
+package jet.remote.v1;
+
+service RepositoryService {
+  rpc GetRepoConfig(GetRepoConfigRequest) returns (GetRepoConfigResponse);
+  rpc GetHead(GetHeadRequest) returns (GetHeadResponse);
+  rpc GetCommit(GetCommitRequest) returns (GetCommitResponse);
+  rpc GetManifest(GetManifestRequest) returns (GetManifestResponse);
+  rpc HasObjects(HasObjectsRequest) returns (HasObjectsResponse);
+  rpc GetChunks(GetChunksRequest) returns (GetChunksResponse);
+  rpc StreamChunks(GetChunksRequest) returns (stream ChunkData);
+  rpc PutChunks(PutChunksRequest) returns (PutChunksResponse);
+  rpc PutCommit(PutCommitRequest) returns (PutCommitResponse);
+  rpc UpdateHead(UpdateHeadRequest) returns (UpdateHeadResponse);
+  rpc LockPath(LockPathRequest) returns (LockPathResponse);
+  rpc UnlockPath(UnlockPathRequest) returns (UnlockPathResponse);
+  rpc ListLocks(ListLocksRequest) returns (ListLocksResponse);
+  rpc GetCurrentIdentity(GetCurrentIdentityRequest) returns (GetCurrentIdentityResponse);
+}
+
+message GetRepoConfigRequest {
+  string repo = 1;
+}
+
+message GetRepoConfigResponse {
+  RepoConfig config = 1;
+}
+
+message GetHeadRequest {
+  string repo = 1;
+}
+
+message GetHeadResponse {
+  string commit_id = 1;
+}
+
+message GetCommitRequest {
+  string repo = 1;
+  string commit_id = 2;
+  bool metadata_only = 3;
+}
+
+message GetCommitResponse {
+  Commit commit = 1;
+}
+
+message GetManifestRequest {
+  string repo = 1;
+  string commit_id = 2;
+  repeated string include = 3;
+  repeated string exclude = 4;
+  bool hot_only = 5;
+  uint32 offset = 6;
+  uint32 max_bytes = 7;
+}
+
+message GetManifestResponse {
+  repeated CommitFileEntry files = 1;
+  uint32 next_offset = 2;
+  bool has_more = 3;
+}
+
+message HasObjectsRequest {
+  string repo = 1;
+  repeated string object_ids = 2;
+}
+
+message HasObjectsResponse {
+  repeated string present_ids = 1;
+}
+
+message GetChunksRequest {
+  string repo = 1;
+  repeated string object_ids = 2;
+}
+
+message GetChunksResponse {
+  repeated ChunkData chunks = 1;
+}
+
+message ChunkData {
+  string id = 1;
+  bytes data = 2;
+}
+
+message PutChunksRequest {
+  string repo = 1;
+  repeated ChunkData chunks = 2;
+}
+
+message PutChunksResponse {
+  uint32 stored_count = 1;
+}
+
+message PutCommitRequest {
+  string repo = 1;
+  Commit commit = 2;
+}
+
+message PutCommitResponse {}
+
+message UpdateHeadRequest {
+  string repo = 1;
+  string expected_commit_id = 2;
+  string new_commit_id = 3;
+}
+
+message UpdateHeadResponse {
+  bool updated = 1;
+  string current_commit_id = 2;
+}
+
+message LockPathRequest {
+  string repo = 1;
+  string path = 2;
+  string owner = 3;
+}
+
+message LockPathResponse {
+  LockInfo lock = 1;
+}
+
+message UnlockPathRequest {
+  string repo = 1;
+  string path = 2;
+  string owner = 3;
+}
+
+message UnlockPathResponse {}
+
+message ListLocksRequest {
+  string repo = 1;
+  string prefix = 2;
+}
+
+message ListLocksResponse {
+  repeated LockInfo locks = 1;
+}
+
+message GetCurrentIdentityRequest {
+  string repo = 1;
+}
+
+message GetCurrentIdentityResponse {
+  string identity = 1;
+}
+
+message LockInfo {
+  string path = 1;
+  string owner = 2;
+}
+
+message RepoConfig {
+  uint32 schema_version = 1;
+  string repo_id = 2;
+  ChunkingConfig chunking = 3;
+  CompressionConfig compression = 4;
+  StorageConfig storage = 5;
+  WorkspaceConfig workspace = 6;
+}
+
+message ChunkingConfig {
+  uint32 min = 1;
+  uint32 avg = 2;
+  uint32 max = 3;
+}
+
+message CompressionConfig {
+  bool enabled = 1;
+  int32 level = 2;
+}
+
+message StorageConfig {
+  uint64 direct_blob_threshold_bytes = 1;
+}
+
+message WorkspaceConfig {
+  repeated string hot_paths = 1;
+  uint64 max_hot_file_bytes = 2;
+}
+
+message Commit {
+  uint32 schema_version = 1;
+  string id = 2;
+  string parent = 3;
+  string author = 4;
+  string message = 5;
+  int64 timestamp_unix = 6;
+  bool files_omitted = 7;
+  repeated CommitFileEntry files = 8;
+}
+
+message CommitFileEntry {
+  string path = 1;
+  uint64 size = 2;
+  string file_digest = 3;
+  repeated CommitChunkRef chunks = 4;
+}
+
+message CommitChunkRef {
+  string id = 1;
+  uint64 offset = 2;
+  uint64 len = 3;
+  uint64 raw_len = 4;
+}

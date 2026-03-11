@@ -1,0 +1,16 @@
+[package]
+name = "jet-tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+jet-core = { path = "../jet-core" }
+jet-remote = { path = "../jet-remote" }
+jet-server = { path = "../jet-server" }
+jet-proto = { path = "../jet-proto" }
+tempfile.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tonic.workspace = true
+

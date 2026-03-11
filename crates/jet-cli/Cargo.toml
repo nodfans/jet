@@ -1,0 +1,15 @@
+[package]
+name = "jet-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "jet"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+jet-core = { path = "../jet-core" }
+jet-remote = { path = "../jet-remote" }

@@ -1,0 +1,23 @@
+[[users]]
+name = "alice"
+tokens = ["jet_alice_token"]
+
+[[users]]
+name = "bob"
+tokens = ["jet_bob_token"]
+
+[[users]]
+name = "charlie"
+tokens = ["jet_charlie_token"]
+
+[[repos]]
+name = "game"
+read = ["alice", "bob", "charlie"]
+write = ["alice", "bob"]
+admin = ["alice"]
+
+[[repos]]
+name = "cinematic"
+read = ["alice", "charlie"]
+write = ["alice"]
+admin = ["alice"]

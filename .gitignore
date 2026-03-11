@@ -1,0 +1,25 @@
+/target
+
+# macOS
+.DS_Store
+
+# Editor / IDE
+.idea/
+.vscode/
+
+# Jet local repo state
+.jet/
+
+# Local temp repos created by product-flow scripts
+/tmp/jet-*
+
+# Benchmark and product-flow temp artifacts
+bench/results/
+bench/datasets/
+
+# Logs / local scratch
+*.log
+
+# Optional local env
+.env
+.env.*

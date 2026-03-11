@@ -1,0 +1,15 @@
+[Unit]
+Description=Jet Repository Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/jet-server --listen 0.0.0.0:4220 --repos-root /srv/jet --auth-config /etc/jet/auth.toml
+Restart=always
+RestartSec=2
+User=jet
+Group=jet
+WorkingDirectory=/srv/jet
+
+[Install]
+WantedBy=multi-user.target

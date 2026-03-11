@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.nodfans.jet-server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/jet-server</string>
+    <string>--listen</string>
+    <string>0.0.0.0:4220</string>
+    <string>--repos-root</string>
+    <string>/srv/jet</string>
+    <string>--auth-config</string>
+    <string>/etc/jet/auth.toml</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/srv/jet</string>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/jet-server.out</string>
+
+  <key>StandardErrorPath</key>
+  <string>/tmp/jet-server.err</string>
+</dict>
+</plist>
