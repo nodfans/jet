@@ -38,4 +38,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: remote-benchmark
-          path: remote-benchmark.txt
+          path: |
+            remote-benchmark.txt
+            remote-benchmark-transcript.txt
