@@ -47,7 +47,7 @@ enum Commands {
     #[command(about = "Switch workspace to a specific commit")]
     Open { commit_id: String },
     #[command(about = "Push local commits to remote")]
-    Push { remote: String },
+    Push { remote: Option<String> },
     #[command(about = "Pull latest commits from remote")]
     Pull { remote: Option<String> },
     #[command(about = "Lock a file for exclusive editing")]
@@ -107,7 +107,15 @@ enum AuthCommands {
 }
 
 fn main() -> ExitCode {
-    match run() {
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => {
+            eprintln!("{}", format_clap_error(&err));
+            return ExitCode::FAILURE;
+        }
+    };
+
+    match run(cli) {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
             eprintln!("{}", render_error(&err));
@@ -116,8 +124,7 @@ fn main() -> ExitCode {
     }
 }
 
-fn run() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+fn run(cli: Cli) -> anyhow::Result<()> {
     let cwd = std::env::current_dir()?;
 
     match cli.command {
@@ -192,6 +199,8 @@ fn run() -> anyhow::Result<()> {
             println!("{}", format_open_success(&resolved));
         }
         Commands::Push { remote } => {
+            let repo = jet_core::JetRepository::open(&cwd)?;
+            let remote = resolve_remote(&repo, remote)?;
             let report = jet_remote::push_to_remote(&cwd, &remote)?;
             print!("{}", format_push_report(&report));
         }
@@ -365,6 +374,13 @@ fn render_error(err: &anyhow::Error) -> String {
     err.to_string()
 }
 
+fn format_clap_error(err: &clap::Error) -> String {
+    err.to_string()
+        .replace("\n\nFor more information, try '--help'.", "")
+        .trim_end()
+        .to_string()
+}
+
 fn short_id(id: &str) -> &str {
     const SHORT_ID_LEN: usize = 12;
 
@@ -439,15 +455,19 @@ fn format_open_success(commit_id: &str) -> String {
 fn format_push_report(report: &jet_remote::PushReport) -> String {
     let mut out = String::new();
     let _ = writeln!(out, "Pushed {}", short_id(&report.new_head));
-    let _ = writeln!(out, "Commits uploaded: {}", report.commit_count);
-    let _ = writeln!(out, "Chunks uploaded:  {}", report.chunk_count);
+    let _ = writeln!(
+        out,
+        "Uploaded {} and {}",
+        pluralize(report.commit_count, "commit"),
+        pluralize(report.chunk_count, "chunk")
+    );
     out
 }
 
 fn format_pull_report(report: &jet_remote::PullReport) -> String {
     let mut out = String::new();
     let _ = writeln!(out, "Pulled {}", short_id(&report.new_head));
-    let _ = writeln!(out, "Commits imported: {}", report.commit_count);
+    let _ = writeln!(out, "Imported {}", pluralize(report.commit_count, "commit"));
     out
 }
 
@@ -481,22 +501,40 @@ fn format_log(commits: &[jet_core::commit_store::Commit], head: Option<&str>) ->
     let mut out = String::new();
     for commit in commits {
         let marker = if head == Some(commit.id.as_str()) {
-            "HEAD"
+            "*"
         } else {
-            "    "
+            " "
         };
         let _ = writeln!(out, "{marker} {}", short_id(&commit.id));
         let _ = writeln!(out, "Author: {}", commit.author);
-        let _ = writeln!(out, "Time:   {}", commit.timestamp_unix);
         if commit.files_omitted {
             let _ = writeln!(out, "Files:  metadata-only");
         } else {
             let _ = writeln!(out, "Files:  {}", commit.files.len());
         }
-        let _ = writeln!(out, "Message: {}", commit.message);
+        let _ = writeln!(out);
+        let _ = writeln!(out, "    {}", commit.message);
         let _ = writeln!(out);
     }
     out
+}
+
+fn resolve_remote(
+    repo: &jet_core::JetRepository,
+    remote: Option<String>,
+) -> Result<String, JetError> {
+    match remote {
+        Some(remote) => Ok(remote),
+        None => repo.workspace_remote_source()?.ok_or(JetError::NoRemoteConfigured),
+    }
+}
+
+fn pluralize(count: usize, noun: &str) -> String {
+    if count == 1 {
+        format!("1 {noun}")
+    } else {
+        format!("{count} {noun}s")
+    }
 }
 
 fn format_status(status: &jet_core::WorkspaceStatus) -> String {
@@ -582,5 +620,53 @@ fn append_path_preview(out: &mut String, label: &str, paths: &[String]) {
     let _ = writeln!(out, "{pretty_label}:");
     for path in paths {
         let _ = writeln!(out, "  {path}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jet_core::commit_store::Commit;
+
+    #[test]
+    fn push_report_is_compact() {
+        let report = jet_remote::PushReport {
+            new_head: "abcdef1234567890".to_string(),
+            commit_count: 1,
+            chunk_count: 2,
+        };
+
+        assert_eq!(format_push_report(&report), "Pushed abcdef123456\nUploaded 1 commit and 2 chunks\n");
+    }
+
+    #[test]
+    fn log_output_is_concise() {
+        let commits = vec![
+            Commit {
+                schema_version: 1,
+                id: "abcdef1234567890".to_string(),
+                parent: None,
+                message: "initial".to_string(),
+                author: "tester".to_string(),
+                timestamp_unix: 1,
+                files: Vec::new(),
+                files_omitted: false,
+            },
+        ];
+
+        assert_eq!(
+            format_log(&commits, Some("abcdef1234567890")),
+            "* abcdef123456\nAuthor: tester\nFiles:  0\n\n    initial\n\n"
+        );
+    }
+
+    #[test]
+    fn clap_errors_are_trimmed() {
+        let err = Cli::try_parse_from(["jet", "clone", "http://example.com/repo"])
+            .expect_err("clone mode should be required");
+
+        let rendered = format_clap_error(&err);
+        assert!(!rendered.contains("For more information, try '--help'."));
+        assert!(rendered.contains("Usage: jet clone <--all|--partial> <SOURCE> [DESTINATION]"));
     }
 }

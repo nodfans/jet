@@ -1,0 +1,41 @@
+name: Remote Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      file_count:
+        description: Number of generated large files
+        required: false
+        default: "4"
+      file_size_mb:
+        description: Size per generated large file in MB
+        required: false
+        default: "64"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run remote benchmark
+        env:
+          JET_FILE_COUNT: ${{ github.event.inputs.file_count || '4' }}
+          JET_FILE_SIZE_MB: ${{ github.event.inputs.file_size_mb || '64' }}
+        run: |
+          bash scripts/benchmark_remote_actions.sh | tee remote-benchmark.txt
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-benchmark
+          path: remote-benchmark.txt

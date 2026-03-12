@@ -55,7 +55,7 @@ Remote:
 jet-server --listen 127.0.0.1:4220 --repos-root /path/to/repos
 jet clone --all http://127.0.0.1:4220/game
 jet pull
-jet push http://127.0.0.1:4220/game
+jet push
 ```
 
 Remote with auth:
@@ -66,7 +66,7 @@ jet auth login http://127.0.0.1:4220/game --token secret
 jet auth whoami http://127.0.0.1:4220/game
 jet clone --all http://127.0.0.1:4220/game
 jet pull
-jet push http://127.0.0.1:4220/game
+jet push
 ```
 
 Use [`examples/auth.toml`](/Users/joma/Documents/Code/jet/examples/auth.toml) as a starting point for multi-user server auth.
@@ -98,6 +98,7 @@ More details:
 
 - [local commands](/Users/joma/Documents/Code/jet/docs/local-commands.md)
 - [codespaces](/Users/joma/Documents/Code/jet/docs/codespaces.md)
+- [github actions benchmark](/Users/joma/Documents/Code/jet/docs/github-actions.md)
 - [deploy server](/Users/joma/Documents/Code/jet/docs/deploy-server.md)
 - [manage auth](/Users/joma/Documents/Code/jet/docs/admin-auth.md)
 - [product testing](/Users/joma/Documents/Code/jet/docs/product-testing.md)
@@ -111,6 +112,7 @@ Bench and product-flow scripts:
 - [scripts/product_flow_local_large.sh](/Users/joma/Documents/Code/jet/scripts/product_flow_local_large.sh)
 - [scripts/product_flow_remote.sh](/Users/joma/Documents/Code/jet/scripts/product_flow_remote.sh)
 - [scripts/product_flow_remote_large.sh](/Users/joma/Documents/Code/jet/scripts/product_flow_remote_large.sh)
+- [scripts/benchmark_remote_actions.sh](/Users/joma/Documents/Code/jet/scripts/benchmark_remote_actions.sh)
 - [scripts/compare_local_lfs.sh](/Users/joma/Documents/Code/jet/scripts/compare_local_lfs.sh)
 
 Integration tests:

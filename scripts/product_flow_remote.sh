@@ -122,7 +122,7 @@ wait_for_server "127.0.0.1" "${PORT}"
 
 remote="http://127.0.0.1:${PORT}/game"
 
-clone_ms="$(measure_ms "cd '${WORK_ROOT}' && '${JET_BIN}' clone '${remote}' '${CLONE_ROOT}'")"
+clone_ms="$(measure_ms "cd '${WORK_ROOT}' && '${JET_BIN}' clone --all '${remote}' '${CLONE_ROOT}'")"
 status1_ms="$(measure_ms "cd '${CLONE_ROOT}' && '${JET_BIN}' status")"
 open1_ms="$(measure_ms "cd '${CLONE_ROOT}' && '${JET_BIN}' open '${head1}'")"
 hydrate_ms="$(measure_ms "cd '${CLONE_ROOT}' && '${JET_BIN}' hydrate assets/cold")"
